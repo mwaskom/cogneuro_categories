@@ -14,11 +14,8 @@ p = dict(
 
     # Basic Gratings
     stim_size=5,
-    stim_tex="sin",
-    stim_mask="circle",
     stim_contrast=1,
-    stim_opacity=1,
-    stim_sf=1.5,
+    stim_sf=3,
 
     # Category information
     cat_colors=[(-1, -1, 1),
@@ -31,10 +28,14 @@ p = dict(
                  15, 45, 75],
 
     # Event schedule
-    blocks_per_run=4,
-    max_context_repeat=4,
+    # Note that this gets used by make_schedule
+    # And should be hardcoded by runtime
+    n_runs=10,
+    trials_per_run=24,
 
     )
+
+context_dmc = p
 
 def add_cmdline_params(parser):
 

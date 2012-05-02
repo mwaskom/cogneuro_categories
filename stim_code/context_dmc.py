@@ -32,12 +32,13 @@ def run_experiment(arglist):
 
     r_fix = visual.PatchStim(win, tex=None, mask="circle",
                              color=p.fix_resp_color, size=p.fix_size)
-    grate = visual.PatchStim(win, p.stim_tex, p.stim_mask,
-                             size=p.stim_size, contrast=p.stim_contrast,
-                             sf=p.stim_sf, opacity=p.stim_opacity)
+    grate = visual.PatchStim(win, "sin", "circle",
+                             size=p.stim_size, opacity=1)
+    color = visual.PatchSti (win, None, "circle",
+                             size=p.fix_size, opacity=.4)
     disk = visual.PatchStim(win, tex=None, mask="circle",
                             color=win.color, size=p.stim_size / 6)
-    stims = [grate, disk, fix]
+    stims = [grate, color, disk, fix]
 
     # Draw the instructions and wait to go
     instruct = dedent("""
