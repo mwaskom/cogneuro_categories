@@ -1,14 +1,14 @@
 from __future__ import division
 
 import os
+import sys
 import time
+import json
 import argparse
-import cPickle
-from glob import glob
 from subprocess import call
 import numpy as np
 from numpy.random import permutation, multinomial
-from psychopy import core, event, visual
+from psychopy import core, event, visual, monitors
 
 
 class Params(object):
@@ -30,6 +30,7 @@ class Params(object):
         """
         self.exp_name = exp_name
         im = __import__(p_file)
+        self.param_module = im
         param_dict = getattr(im, exp_name)
         for key, val in param_dict.items():
             setattr(self, key, val)
@@ -39,25 +40,17 @@ class Params(object):
         # Create the parser, set default args
         parser = argparse.ArgumentParser()
         parser.add_argument("-subject", default="test")
+        parser.add_argument("-run", type=int, default=1)
         parser.add_argument("-debug", action="store_true")
 
         # Add additional arguments by experiment
         try:
-            add_args = getattr(self, "_add_%s_args" % self.exp_name)
-            parser = add_args(parser)
+            parser = self.param_module.add_cmdline_params(parser)
         except AttributeError:
             pass
-        print parser
 
         # Parse the arguments
         args = parser.parse_args(arglist)
-
-        # Check for required arguments
-        # (They're mutally exclusive so argparse's
-        # build in required functionality won't work
-        if (self.exp_name == "percep" and 
-            not any([args.group, args.free])):
-            raise ValueError("Must set either -group or -free")
 
         # Add command line args to the class dict
         self.__dict__.update(args.__dict__)
@@ -65,19 +58,23 @@ class Params(object):
         if self.debug:
             self.full_screen = False
 
-    def _add_percep_args(self, parser):
-        """Add command line args for percep experiment."""
-        group = parser.add_mutually_exclusive_group()
-        group.add_argument('-free', action="store_true")
-        group.add_argument('-group', action="store_true")
-        parser.add_argument("-pklfile")
-        return parser
-
-    def save(self, fid):
+    def to_text_header(self, fid):
         """Save the parameters to a text file."""
         for key, val in self.__dict__.items():
             if not key.startswith("_"):
                 fid.write("# %s : %s \n" % (key, val))
+
+    def to_json(self, fname):
+        """Save the parameters to a .json"""
+        fid = file(fname, "w")
+        # Strip the OOP hooks
+        data = dict([(k, v) for k, v in self.__dict__.items()
+                     if not k.startswith("_")])
+        # Strip the param module
+        del data["param_module"]
+
+        # Save to JSON
+        json.dump(data, fid, sort_keys=True, indent=4)
 
 
 def start_data_file(subject_id, exp):
@@ -114,15 +111,46 @@ def max_brightness(monitor):
             print "Could not modify screen brightness"
 
 
-def save_data(f, *arg):
+def save_data(f, *dataline):
 
-    for a in arg[0:-1]:
+    for a in dataline[0:-1]:
         f.write('%s,' % a)
 
     #Don't put a comma after the last one:
-    f.write('%s\n' % arg[-1])
+    f.write('%s\n' % dataline[-1])
 
     return f
+
+
+class WindowInfo(object):
+    """Container for monitor information."""
+    def __init__(self, params):
+        """Extracts monitor information from params file and monitors.py."""
+        try:
+            mod = __import__("monitors")
+        except ImportError:
+            sys.exit("Could not import monitors.py in this directory.")
+
+        try:
+            minfo = getattr(mod, params.monitor_name.replace("-", "_"))
+        except IndexError:
+            sys.exit("Monitor name '%s' not found in monitors.py")
+
+        monitor = monitors.Monitor(name=params.monitor_name,
+                                   width=minfo["width"],
+                                   distance=minfo["distance"])
+        monitor.setSizePix(minfo["size"])
+
+        size = minfo["size"] if params.full_screen else (800, 600)
+        info = dict(units=params.monitor_units,
+                    fullscr=params.full_screen,
+                    allowGUI=not params.full_screen,
+                    size=size,
+                    monitor=monitor)
+
+        self.name = params.monitor_name
+        self.__dict__.update(info)
+        self.window_kwargs = info
 
 
 class WaitText(object):
@@ -150,24 +178,6 @@ class WaitText(object):
             for key in event.getKeys():
                 if key:
                     return
-
-
-def get_oddball_delta(params):
-    """Figure out the SF delta for oddballs."""
-
-    if params.debug:
-        return .5
-    if params.pklfile is not None:
-        staircase = cPickle.load(open(params.pklfile))
-    else:
-        pkl_list = sorted(glob("data/%s_staircase_*.psydat" % params.subject))
-        try:
-            staircase = cPickle.load(open(pkl_list[-1]))
-        except IndexError:
-            raise RuntimeError("Could not find staircase file.")
-    oddball_delta = np.mean(staircase.intensities[-params.staircase_tail:])
-
-    return oddball_delta
 
 
 def max_three_in_a_row(seq):
