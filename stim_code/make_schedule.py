@@ -1,8 +1,7 @@
 from __future__ import division
 import sys
-import numpy as np
-from numpy.random import (permutation, binomial, multinomial,
-                          randint, uniform)
+import os.path as op
+from numpy.random import permutation
 from pandas import DataFrame
 import tools
 
@@ -11,9 +10,12 @@ def main(arglist):
 
     p = tools.Params("context_dmc")
 
+    for run in range(1, p.n_runs + 1):
+        df = build_run_schedule(p, run)
+        fname = op.join("schedules", "run_%02d.csv" % run)
+        df.to_csv(fname, index_label="trial")
 
-
-def write_run_schedule(p, run):
+def build_run_schedule(p, run):
 
     # Generate a schedule of events (context/category conjunction)
     events = tools.optimize_event_schedule(4,
@@ -25,18 +27,25 @@ def write_run_schedule(p, run):
     igncat = [range(2) * 3 for i in range(4)]
     ignexm = [[range(3), range(3)] for i in range(4)]
 
-    cue_tr = [range(1, 4) * 2 for i in range(4)]
-    del_tr = [range(1, 4) * 2 for i in range(4)]
+    psi_tr = [range(1, 4) * 2 for i in range(4)]
+    isi_tr = [range(1, 4) * 2 for i in range(4)]
     iti_tr = [range(1, 4) * 2 for i in range(4)]
 
+    # TODO this is shitty, do it better
+    match_event = [range(2) * 3 for i in range(4)]
+
     # Randomize within groupings
-    attend = [permutation(l).tolist() for l in attend]
-    igncat = [permutation(l).tolist() for l in igncat]
+    scramble = lambda x: [permutation(l).tolist() for l in x]
+    attend = scramble(attend)
+    igncat = scramble(igncat)
     ignexm = [[permutation(l).tolist() for l in c] for c in ignexm]
 
-    cue_tr = [permutation(l).tolist() for l in cue_tr]
-    isi_tr = [permutation(l).tolist() for l in del_tr]
-    iti_tr = [permutation(l).tolist() for l in iti_tr]
+    cue_tr = scramble(psi_tr)
+    isi_tr = scramble(isi_tr)
+    iti_tr = scramble(iti_tr)
+
+    # TODO also shitty
+    match_event = scramble(match_event)
 
     # Set up blank schedule vectors
     context = []
@@ -44,9 +53,10 @@ def write_run_schedule(p, run):
     a_exemp = []
     i_categ = []
     i_exemp = []
-    cue = []
+    psi = []
     isi = []
     iti = []
+    match = []
 
     # Build the schedule, event by event
     for i, event in enumerate(events):
@@ -62,9 +72,11 @@ def write_run_schedule(p, run):
         i_categ.append(icat)
         i_exemp.append(ignexm[event][icat].pop())
 
-        cue.append(cue_tr[event].pop())
+        psi.append(cue_tr[event].pop())
         isi.append(isi_tr[event].pop())
         iti.append(iti_tr[event].pop())
+
+        match.append(match_event[event].pop())
 
     # Create a Pandas DataFrame
     df = DataFrame(dict(
@@ -73,7 +85,8 @@ def write_run_schedule(p, run):
         attend_exemp=a_exemp,
         ignore_cat=i_categ,
         ignore_exemp=i_exemp,
-        cue_tr=cue,
+        match=match,
+        psi_tr=psi,
         isi_tr=isi,
         iti_tr=iti))
 
