@@ -9,6 +9,7 @@ from psychopy import visual, core, event
 import pandas
 import tools
 
+
 def run_experiment(arglist):
 
     # Get the experiment parameters
@@ -37,7 +38,6 @@ def run_experiment(arglist):
     orient_text = visual.TextStim(win, text="orient")
     cue_stims = dict(color=color_text, orient=orient_text)
 
-
     # Draw the instructions and wait to go
     instruct = dedent("""
     Look at some things and do some stuff""")  # TODO
@@ -64,7 +64,6 @@ def run_experiment(arglist):
     trial_clock = core.Clock()
     event.clearEvents()
 
-
     # Get the schedule for this run
     sched_file = "schedules/run_%02d.csv" % p.run
     s = pandas.read_csv(sched_file)
@@ -78,7 +77,7 @@ def run_experiment(arglist):
         for t in s.trial:
 
             context = context_map[s.context[t]]
-            
+
             # Cue period
             cue_stims[context].draw()
             win.flip()
@@ -92,7 +91,7 @@ def run_experiment(arglist):
             # Sample stimulus
             a_cat = s.attend_cat[t]
             a_exemp = s.attend_exemp[t]
-            
+
             i_cat = s.ignore_cat[t]
             i_exemp = s.ignore_exemp[t]
 
@@ -125,14 +124,14 @@ def run_experiment(arglist):
                     stim_color = p.cat_colors[a_cat][randint(3)]
                     stim_orient = p.cat_orients[randint(2)][randint(3)]
                 elif context == "orient":
-                    stim_color = p.colors[randint(2)][randint(3)]
+                    stim_color = p.cat_colors[randint(2)][randint(3)]
                     stim_orient = p.cat_colors[a_cat][randint(3)]
             else:
                 if context == "color":
                     stim_color = p.cat_colors[int(not a_cat)][randint(3)]
                     stim_orient = p.cat_orients[randint(2)][randint(3)]
                 elif context == "orient":
-                    stim_color = p.colors[randint(2)][randint(3)]
+                    stim_color = p.cat_colors[randint(2)][randint(3)]
                     stim_orient = p.cat_colors[int(not a_cat)][randint(3)]
 
             color.setColor(stim_color)
@@ -168,7 +167,6 @@ def run_experiment(arglist):
             fix.draw()
             win.flip()
             core.wait(s.iti_tr[t] * p.tr)
-
 
     finally:
         # Clean up
