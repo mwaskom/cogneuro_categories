@@ -5,6 +5,7 @@ import sys
 import time
 import json
 import argparse
+from math import floor
 from subprocess import call
 import numpy as np
 from numpy.random import permutation, multinomial
@@ -122,6 +123,28 @@ def save_data(f, *dataline):
     return f
 
 
+def check_quit(quit_keys):
+    """Check if we got a quit key signal and exit if so."""
+    keys = event.getKeys()
+    for key in keys:
+        if key in quit_keys:
+            core.quit()
+
+
+def wait_check_quit(wait_time, quit_keys):
+    """Wait a given time, checking for a quit every second."""
+    for sec in range(int(floor(wait_time))):
+        core.wait(1)
+        check_quit(quit_keys)
+    remaining = wait_time - floor(wait_time)
+    if remaining:
+        core.wait(remaining)
+
+
+def draw_all(*args):
+    for stim in args:
+        stim.draw()
+
 class WindowInfo(object):
     """Container for monitor information."""
     def __init__(self, params):
@@ -166,7 +189,7 @@ class WaitText(object):
         self.win = win
         self.text = visual.TextStim(win, text=text, **kwargs)
 
-    def __call__(self, duration=np.inf):
+    def __call__(self, check_keys=None, duration=np.inf):
         """Dislpay text until a key is pressed or until duration elapses."""
         clock = core.Clock()
         t = 0
@@ -176,7 +199,7 @@ class WaitText(object):
             self.text.draw()
             self.win.flip()
             for key in event.getKeys():
-                if key:
+                if (check_keys is None and key) or (key in check_keys):
                     return
 
 

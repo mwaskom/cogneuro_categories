@@ -6,6 +6,7 @@ from numpy.random import randint
 from psychopy import visual, core, event
 import pandas
 import tools
+from tools import draw_all, check_quit
 
 
 def run_experiment(arglist):
@@ -46,7 +47,7 @@ def run_experiment(arglist):
     # Draw the instructions and wait to go
     instruct = dedent("""
     Look at some things and do some stuff""")  # TODO
-    tools.WaitText(win, instruct, height=.7)()
+    tools.WaitText(win, instruct, height=.7)(check_keys=["space"])
 
     # Start a data file and write the params to it
     f, fname = tools.start_data_file(p.subject, "context_dmc")
@@ -77,7 +78,8 @@ def run_experiment(arglist):
         # Dummy scans
         fix.draw()
         win.flip()
-        core.wait(p.dummy_trs * p.tr)
+        dummy_secs = p.dummy_trs * p.tr
+        tools.wait_check_quit(dummy_secs, p.quit_keys)
 
         for t in s.trial:
 
@@ -157,8 +159,9 @@ def run_experiment(arglist):
 
             # Response
             r_fix.draw()
-            win.flip()
             trial_clock.reset()
+            event.clearEvents()
+            win.flip()
             core.wait(p.resp_dur)
 
             # Collect the response
@@ -199,10 +202,6 @@ def run_experiment(arglist):
         f.close()
         win.close()
 
-
-def draw_all(*args):
-    for stim in args:
-        stim.draw()
 
 if __name__ == "__main__":
     sys.exit(run_experiment(sys.argv[1:]))

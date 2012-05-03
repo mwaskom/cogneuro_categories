@@ -52,4 +52,6 @@ context_dmc = p
 
 def add_cmdline_params(parser):
 
+    parser.add_argument("-fmri", action="store_true")
+
     return parser
