@@ -15,6 +15,7 @@ def main(arglist):
         fname = op.join("schedules", "run_%02d.csv" % run)
         df.to_csv(fname, index_label="trial")
 
+
 def build_run_schedule(p, run):
 
     # Generate a schedule of events (context/category conjunction)

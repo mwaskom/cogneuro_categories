@@ -2,9 +2,7 @@ from __future__ import division
 import sys
 import os.path as op
 from textwrap import dedent
-import numpy as np
-from numpy.random import (permutation, binomial, multinomial,
-                          randint, uniform)
+from numpy.random import randint
 from psychopy import visual, core, event
 import pandas
 import tools
@@ -74,6 +72,11 @@ def run_experiment(arglist):
     # --------------------
     try:
 
+        # Dummy scans
+        fix.draw()
+        win.flip()
+        core.wait(p.dummy_trs * p.tr)
+
         for t in s.trial:
 
             context = context_map[s.context[t]]
@@ -119,20 +122,22 @@ def run_experiment(arglist):
             # TODO ugh this logic sucks
             # TODO also check that it works in general
             match = s.match[t]
+            idx2 = randint(2)
+            idx3 = randint(3)
             if match:
                 if context == "color":
-                    stim_color = p.cat_colors[a_cat][randint(3)]
-                    stim_orient = p.cat_orients[randint(2)][randint(3)]
+                    stim_color = p.cat_colors[a_cat][idx3]
+                    stim_orient = p.cat_orients[idx2][idx3]
                 elif context == "orient":
-                    stim_color = p.cat_colors[randint(2)][randint(3)]
-                    stim_orient = p.cat_colors[a_cat][randint(3)]
+                    stim_color = p.cat_colors[idx2][idx3]
+                    stim_orient = p.cat_orients[a_cat][idx3]
             else:
                 if context == "color":
-                    stim_color = p.cat_colors[int(not a_cat)][randint(3)]
-                    stim_orient = p.cat_orients[randint(2)][randint(3)]
+                    stim_color = p.cat_colors[int(not a_cat)][idx3]
+                    stim_orient = p.cat_orients[idx2][idx3]
                 elif context == "orient":
-                    stim_color = p.cat_colors[randint(2)][randint(3)]
-                    stim_orient = p.cat_colors[int(not a_cat)][randint(3)]
+                    stim_color = p.cat_colors[idx2][idx3]
+                    stim_orient = p.cat_orients[int(not a_cat)][idx3]
 
             color.setColor(stim_color)
             grate.setOri(stim_orient)
@@ -158,7 +163,7 @@ def run_experiment(arglist):
                     resp_rt = stamp
                     break
                 elif key in p.nonmatch_keys:
-                    corr = 1 if not match else 0
+                    corr = 0 if match else 1
                     response = 2
                     resp_rt = stamp
                     break

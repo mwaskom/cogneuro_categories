@@ -9,8 +9,7 @@ p = dict(
     # Fixation
     fix_size=.15,
     fix_color='white',
-    fix_antic_color='red',
-    fix_resp_color='green',
+    fix_resp_color='#33FF55',
 
     # Basic Gratings
     stim_size=5,
@@ -40,11 +39,12 @@ p = dict(
     stim_sfix_dur=1.5,
     stim_targ_dur=.5,
     resp_dur=1.5,
+    dummy_trs=1, # TODO fix before scan
 
     # Response settings
     quit_keys=("escape", "q"),
     match_keys=('1', ','),
-    nonmatch_key=('2', '.'),
+    nonmatch_keys=('2', '.'),
 
     )
 
