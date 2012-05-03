@@ -5,7 +5,7 @@ cni_lcd = dict(monitor_name='cni_lcd',
                calib_file='calib/cni_lums_20110718.csv', # photometer data calculated
                # from Franco's calibration data.
                calib_date='20110718',  
-               width=25.5, # in cm
+               width=64.3, # in cm. 25.5 inches(!)
                distance=190, # viewing distance in cm
                size=[2560, 1600],  # in pixels
                notes=dedent("""
