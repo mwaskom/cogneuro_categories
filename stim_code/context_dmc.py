@@ -49,6 +49,18 @@ def run_experiment(arglist):
     Look at some things and do some stuff""")  # TODO
     tools.WaitText(win, instruct, height=.7)(check_keys=["space"])
 
+    # Possibly wait for the scanner
+    if p.fmri:
+        event.clearEvents()
+        visual.TextStim(win, text="Get ready!").draw()
+        win.flip()
+
+        # Here's where we expect pulses
+        wait = True
+        while wait:
+            for key in event.getKeys(keyList=["t", "5"]):
+                wait = False if key else True
+
     # Start a data file and write the params to it
     f, fname = tools.start_data_file(p.subject, "context_dmc")
     p.to_text_header(f)
