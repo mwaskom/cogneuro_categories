@@ -9,7 +9,7 @@ p = dict(
     # Fixation
     fix_size=.15,
     fix_color='white',
-    fix_resp_color='#33FF55',
+    fix_resp_color='#50DD20',
 
     # Basic Gratings
     stim_size=5,
