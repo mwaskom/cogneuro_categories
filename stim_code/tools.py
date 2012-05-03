@@ -198,8 +198,8 @@ class WaitText(object):
             t = clock.getTime()
             self.text.draw()
             self.win.flip()
-            for key in event.getKeys():
-                if (check_keys is None and key) or (key in check_keys):
+            for key in event.getKeys(keyList=check_keys):
+                if key:
                     return
 
 
