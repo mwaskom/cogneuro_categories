@@ -36,6 +36,13 @@ def run_experiment(arglist):
     orient_text = visual.TextStim(win, text="orient")
     cue_stims = dict(color=color_text, orient=orient_text)
 
+    # Get the schedule for this run
+    sched_file = "schedules/run_%02d.csv" % p.run
+    s = pandas.read_csv(sched_file)
+
+    # Convenience map
+    context_map = ["color", "orient"]
+
     # Draw the instructions and wait to go
     instruct = dedent("""
     Look at some things and do some stuff""")  # TODO
@@ -45,13 +52,14 @@ def run_experiment(arglist):
     f, fname = tools.start_data_file(p.subject, "context_dmc")
     p.to_text_header(f)
 
-    # TODO log by stim, add total time
-    header = ["trial", "block", "context",
+    # Write the datafile header
+    header = ["trial", "context", "match",
               "samp_color", "samp_orient",
               "samp_color_cat", "samp_orient_cat",
               "targ_color", "targ_orient",
               "targ_color_cat", "targ_orient_cat",
-              "delay", "response", "rt", "acc", "elapsed"]
+              "cue_time", "psi", "isi", "iti",
+              "response", "rt", "acc"]
     tools.save_data(f, *header)
 
     # Set up output variable
@@ -61,12 +69,6 @@ def run_experiment(arglist):
     exp_clock = core.Clock()
     trial_clock = core.Clock()
     event.clearEvents()
-
-    # Get the schedule for this run
-    sched_file = "schedules/run_%02d.csv" % p.run
-    s = pandas.read_csv(sched_file)
-
-    context_map = ["color", "orient"]
 
     # Main experiment loop
     # --------------------
@@ -84,6 +86,7 @@ def run_experiment(arglist):
             # Cue period
             cue_stims[context].draw()
             win.flip()
+            cue_time = exp_clock.getTime()
             core.wait(p.cue_dur)
 
             # Pre-stim fixation (PSI)
@@ -98,15 +101,20 @@ def run_experiment(arglist):
             i_cat = s.ignore_cat[t]
             i_exemp = s.ignore_exemp[t]
 
-            if context == "color":
-                stim_color = p.cat_colors[a_cat][a_exemp]
-                stim_orient = p.cat_orients[i_cat][i_exemp]
-            else:
-                stim_color = p.cat_colors[i_cat][i_exemp]
-                stim_orient = p.cat_orients[a_cat][a_exemp]
+            c_cat = a_cat if context == "color" else i_cat
+            o_cat = a_cat if context == "orient" else i_cat
+            c_exemp = a_exemp if context == "color" else i_exemp
+            o_exemp = a_exemp if context == "orient" else i_exemp
 
-            color.setColor(stim_color)
-            grate.setOri(stim_orient)
+            if context == "color":
+                samp_color = p.cat_colors[a_cat][a_exemp]
+                samp_orient = p.cat_orients[i_cat][i_exemp]
+            else:
+                samp_color = p.cat_colors[i_cat][i_exemp]
+                samp_orient = p.cat_orients[a_cat][a_exemp]
+
+            color.setColor(samp_color)
+            grate.setOri(samp_orient)
 
             draw_all(*stims)
             win.flip()
@@ -119,28 +127,29 @@ def run_experiment(arglist):
             core.wait(total_isi)
 
             # Target stimulus
-            # TODO ugh this logic sucks
-            # TODO also check that it works in general
             match = s.match[t]
             idx2 = randint(2)
             idx3 = randint(3)
             if match:
                 if context == "color":
-                    stim_color = p.cat_colors[a_cat][idx3]
-                    stim_orient = p.cat_orients[idx2][idx3]
+                    t_c_cat = a_cat
+                    t_o_cat = idx2
                 elif context == "orient":
-                    stim_color = p.cat_colors[idx2][idx3]
-                    stim_orient = p.cat_orients[a_cat][idx3]
+                    t_c_cat = idx2
+                    t_o_cat = a_cat
             else:
                 if context == "color":
-                    stim_color = p.cat_colors[int(not a_cat)][idx3]
-                    stim_orient = p.cat_orients[idx2][idx3]
+                    t_c_cat = int(not a_cat)
+                    t_o_cat = idx2
                 elif context == "orient":
-                    stim_color = p.cat_colors[idx2][idx3]
-                    stim_orient = p.cat_orients[int(not a_cat)][idx3]
+                    t_c_cat = idx2
+                    t_o_cat = int(not a_cat)
+            t_c_exemp, t_o_exemp = idx3, idx3
+            targ_color = p.cat_colors[t_c_cat][t_c_exemp]
+            targ_orient = p.cat_orients[t_o_cat][t_o_exemp]
 
-            color.setColor(stim_color)
-            grate.setOri(stim_orient)
+            color.setColor(targ_color)
+            grate.setOri(targ_orient)
 
             draw_all(*stims)
             win.flip()
@@ -149,6 +158,7 @@ def run_experiment(arglist):
             # Response
             r_fix.draw()
             win.flip()
+            trial_clock.reset()
             core.wait(p.resp_dur)
 
             # Collect the response
@@ -167,6 +177,17 @@ def run_experiment(arglist):
                     response = 2
                     resp_rt = stamp
                     break
+
+            # Write out the trial data
+            t_data = [t, context, match,
+                      c_exemp, o_exemp,
+                      c_cat, o_cat,
+                      t_c_exemp, t_o_exemp,
+                      t_c_cat, t_o_cat,
+                      cue_time, s.psi_tr[t],
+                      s.isi_tr[t], s.iti_tr[t],
+                      response, resp_rt, corr]
+            tools.save_data(f, *t_data)
 
             # ITI interval
             fix.draw()
