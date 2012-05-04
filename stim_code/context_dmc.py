@@ -72,13 +72,16 @@ def run_experiment(arglist):
               "samp_color_cat", "samp_orient_cat",
               "targ_color", "targ_orient",
               "targ_color_cat", "targ_orient_cat",
-              "cue_time", "psi", "isi", "iti",
+              "cue_time", "block_time",
+              "psi_time", "isi_time", "iti_time",
               "response", "rt", "acc"]
     tools.save_data(f, *header)
 
     # Start a clock and flush the event buffer
+    total_time = 0
     exp_clock = core.Clock()
     trial_clock = core.Clock()
+    block_clock = core.Clock()
     event.clearEvents()
 
     # Main experiment loop
@@ -89,22 +92,33 @@ def run_experiment(arglist):
         fix.draw()
         win.flip()
         dummy_secs = p.dummy_trs * p.tr
+        total_time += dummy_secs
         wait_check_quit(dummy_secs, p.quit_keys)
 
         for t in s.trial:
 
+            # Get this trial's context
             context = context_map[s.context[t]]
+
+            # Get this trial's timing info
+            psi_secs = s.psi_tr[t] * p.tr
+            isi_secs = p.stim_sfix_dur + (s.isi_tr[t] * p.tr)
+            iti_secs = s.iti_tr[t] * p.tr
+            block_time = (p.cue_dur + psi_secs +
+                          p.stim_samp_dur + isi_secs +
+                          p.stim_targ_dur + p.resp_dur + iti_secs)
+            total_time += block_time
 
             # Cue period
             cue_stims[context].draw()
             win.flip()
             cue_time = exp_clock.getTime()
+            block_clock.reset()
             core.wait(p.cue_dur)
 
             # Pre-stim fixation (PSI)
             fix.draw()
             win.flip()
-            psi_secs = s.psi_tr[t] * p.tr
             wait_check_quit(psi_secs, p.quit_keys)
 
             # Sample stimulus
@@ -136,7 +150,6 @@ def run_experiment(arglist):
             # Post stim fix and ISI
             fix.draw()
             win.flip()
-            isi_secs = p.stim_sfix_dur + (s.isi_tr[t] * p.tr)
             wait_check_quit(isi_secs, p.quit_keys)
 
             # Target stimulus
@@ -179,10 +192,12 @@ def run_experiment(arglist):
             corr, resp, resp_rt = collect_response(p, trial_clock, match)
 
             # ITI interval
-            fix.draw()
-            win.flip()
-            iti_secs = s.iti_tr[t] * p.tr
-            core.wait(iti_secs)
+            # Go by screen refreshes for precise timing
+            iti_time = total_time - exp_clock.getTime()
+            iti_frames = int(iti_time * 60) # 60 Hz monitor
+            for frame in xrange(iti_frames):
+                fix.draw()
+                win.flip()
 
             # Possibly check for late response
             if resp == -1:
@@ -194,16 +209,10 @@ def run_experiment(arglist):
                       c_cat, o_cat,
                       t_c_exemp, t_o_exemp,
                       t_c_cat, t_o_cat,
-                      cue_time, s.psi_tr[t],
-                      s.isi_tr[t], s.iti_tr[t],
+                      cue_time, block_time,
+                      psi_secs, isi_secs, iti_secs,
                       resp, resp_rt, corr]
             tools.save_data(f, *t_data)
-            f.flush()
-
-            # Check for a quit request
-            # (We can't check during the ITI because we
-            # want to listen for a potentially late response)
-            check_quit(p.quit_keys)
 
     finally:
         # Clean up
