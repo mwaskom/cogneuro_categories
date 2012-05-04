@@ -59,8 +59,12 @@ class Params(object):
 
         if self.debug:
             self.full_screen = False
+
         if self.fmri:
             self.monitor_name="cni_lcd"
+
+        if hasattr(self, "dummy_trs") and not self.fmri:
+            self.dummy_trs = 1
 
     def to_text_header(self, fid):
         """Save the parameters to a text file."""

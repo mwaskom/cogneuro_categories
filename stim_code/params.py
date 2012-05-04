@@ -46,7 +46,7 @@ context_dmc = dict(
     stim_sfix_dur=1.5,
     stim_targ_dur=.5,
     resp_dur=1.5,
-    dummy_trs=1, # TODO fix before scan
+    dummy_trs=4,
 
     # Response settings
     quit_keys=("escape", "q"),
