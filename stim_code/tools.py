@@ -130,9 +130,11 @@ def save_data(f, *dataline):
     return f
 
 
-def check_quit(quit_keys):
+def check_quit(quit_keys=None):
     """Check if we got a quit key signal and exit if so."""
-    keys = event.getKeys()
+    if quit_keys is None:
+        quit_keys = ["q", "escape"]
+    keys = event.getKeys(keyList=quit_keys)
     for key in keys:
         if key in quit_keys:
             core.quit()
