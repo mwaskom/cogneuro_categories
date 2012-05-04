@@ -6,7 +6,7 @@ from psychopy import visual, core, event
 import psychopy.monitors.calibTools as calib
 import pandas
 import tools
-from tools import draw_all, check_quit
+from tools import draw_all, check_quit, wait_check_quit
 
 
 def run_experiment(arglist):
@@ -31,10 +31,10 @@ def run_experiment(arglist):
     color = visual.PatchStim(win, None, p.stim_mask,
                              size=p.stim_size, opacity=.4)
     disk = visual.PatchStim(win, tex=None, mask="gauss",
-                            color=win.color, size=p.stim_size / 8)
+                            color=win.color, size=p.stim_size / 6)
     stims = [grate, color, disk, fix]
 
-    # TODO more options in params.py
+    # Set up the cue stimuli
     color_text = visual.TextStim(win, text="color")
     orient_text = visual.TextStim(win, text="orient")
     cue_stims = dict(color=color_text, orient=orient_text)
@@ -48,7 +48,12 @@ def run_experiment(arglist):
 
     # Draw the instructions and wait to go
     instruct = dedent("""
-    Look at some things and do some stuff""")  # TODO
+    Say whether the two stimuli in each trial match
+    on the relevant category dimension
+
+    1 = match                          2 = nonmatch
+
+    Experimenter: press space to begin""")
     tools.WaitText(win, instruct, height=.7)(check_keys=["space"])
 
     # Possibly wait for the scanner
@@ -56,7 +61,7 @@ def run_experiment(arglist):
         tools.wait_for_trigger(win, p)
 
     # Start a data file and write the params to it
-    f, fname = tools.start_data_file(p.subject, "context_dmc")
+    f, fname = tools.start_data_file(p.subject, p.experiment_name, p.run)
     p.to_text_header(f)
 
     # Write the datafile header
@@ -82,7 +87,7 @@ def run_experiment(arglist):
         fix.draw()
         win.flip()
         dummy_secs = p.dummy_trs * p.tr
-        tools.wait_check_quit(dummy_secs, p.quit_keys)
+        wait_check_quit(dummy_secs, p.quit_keys)
 
         for t in s.trial:
 
@@ -98,7 +103,7 @@ def run_experiment(arglist):
             fix.draw()
             win.flip()
             psi_secs = s.psi_tr[t] * p.tr
-            tools.wait_check_quit(psi_secs, p.quit_keys)
+            wait_check_quit(psi_secs, p.quit_keys)
 
             # Sample stimulus
             a_cat = s.attend_cat[t]
@@ -130,7 +135,7 @@ def run_experiment(arglist):
             fix.draw()
             win.flip()
             isi_secs = p.stim_sfix_dur + (s.isi_tr[t] * p.tr)
-            tools.wait_check_quit(isi_secs, p.quit_keys)
+            wait_check_quit(isi_secs, p.quit_keys)
 
             # Target stimulus
             match = s.match[t]
@@ -178,7 +183,7 @@ def run_experiment(arglist):
             core.wait(iti_secs)
 
             # Possibly check for late response
-            if resp == -1: 
+            if resp == -1:
                 corr, resp, resp_rt = collect_response(p, trial_clock, match)
 
             # Write out the trial data
@@ -196,7 +201,7 @@ def run_experiment(arglist):
             # Check for a quit request
             # (We can't check during the ITI because we
             # want to listen for a potentially late response)
-            tools.check_quit(p.quit_keys)
+            check_quit(p.quit_keys)
 
     finally:
         # Clean up

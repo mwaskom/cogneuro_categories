@@ -1,5 +1,7 @@
 p = dict(
 
+    experiment_name="context_dmc",
+
     # Display setup
     monitor_name='mlw-mbpro',
     monitor_units="deg",
@@ -44,15 +46,13 @@ p = dict(
 
     # Response settings
     quit_keys=("escape", "q"),
-    match_keys=('1', ','),
-    nonmatch_keys=('2', '.'),
+    match_keys=('2', ','),
+    nonmatch_keys=('3', '.'),
 
     )
 
 context_dmc = p
 
 def add_cmdline_params(parser):
-
-    parser.add_argument("-fmri", action="store_true")
 
     return parser

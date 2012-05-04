@@ -9,7 +9,7 @@ from math import floor
 from subprocess import call
 import numpy as np
 from numpy.random import permutation, multinomial
-from psychopy import core, event, visual, monitors
+from psychopy import core, event, visual
 
 
 class Params(object):
@@ -42,6 +42,7 @@ class Params(object):
         parser = argparse.ArgumentParser()
         parser.add_argument("-subject", default="test")
         parser.add_argument("-run", type=int, default=1)
+        parser.add_argument("-fmri", action="store_true")
         parser.add_argument("-debug", action="store_true")
 
         # Add additional arguments by experiment
@@ -58,6 +59,8 @@ class Params(object):
 
         if self.debug:
             self.full_screen = False
+        if self.fmri:
+            self.monitor_name="cni_lcd"
 
     def to_text_header(self, fid):
         """Save the parameters to a text file."""
@@ -78,7 +81,7 @@ class Params(object):
         json.dump(data, fid, sort_keys=True, indent=4)
 
 
-def start_data_file(subject_id, exp):
+def start_data_file(subject_id, exp, run):
     """Start a file object into which you will write the data.
 
     Makes sure sure not to over-write previously existing files.
@@ -87,12 +90,10 @@ def start_data_file(subject_id, exp):
     list_data_dir = os.listdir('./data')
 
     i = 1
-    data_file = '%s_%s_%s_%d.csv' % (subject_id, exp,
-                                     time.strftime('%m%d%Y'), i)
+    data_file = '%s_%s_run%02d_%d.csv' % (subject_id, exp, run, i)
     while data_file in list_data_dir:
         i += 1
-        data_file = '%s_%s_%s_%d.csv' % (subject_id, exp,
-                                       time.strftime('%m%d%Y'), i)
+        data_file = '%s_%s_run%02d_%d.csv' % (subject_id, exp, run, i)
 
     #Open the file for writing into:
     f = file('./data/%s' % data_file, 'w')
