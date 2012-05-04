@@ -1,15 +1,15 @@
 base = dict(
 
     # Display setup
-    monitor_name='mlw-mbpro',
+    monitor_name="mlw-mbpro",
     monitor_units="deg",
     full_screen=True,
     screen_number=0,
 
     # Fixation
     fix_size=.15,
-    fix_color='white',
-    fix_resp_color='#FFD733',
+    fix_color="white",
+    fix_resp_color="#FFD733",
 
     # Basic Gratings
     stim_size=5,
@@ -50,17 +50,31 @@ context_dmc = dict(
 
     # Response settings
     quit_keys=("escape", "q"),
-    match_keys=('2', ','),
-    nonmatch_keys=('3', '.'),
+    match_keys=("2", "comma"),
+    nonmatch_keys=("3", "period"),
 
     )
 context_dmc.update(base)
 
 category_train = dict(
 
-    # TODO tune
-    right_color="green",
-    wrong_color="red",
+    # Schedule
+    cue_dur=2,
+    n_per_block=12,
+    acc_threshold=1,
+    good_blocks=2,
+    stim_dur=.5,
+    feedback_dur=.5,
+    isi=1,
+
+    # Feedback colors
+    right_color="#00FF75",
+    wrong_color="#FF4215",
+
+    # Response keys
+    cat_one_key="comma",
+    cat_two_key="period",
+    resp_keys=["comma", "period"],
 
 )
 category_train.update(context_dmc)
