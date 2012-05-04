@@ -27,7 +27,7 @@ def run_experiment(arglist):
     r_fix = visual.PatchStim(win, tex=None, mask="circle",
                              color=p.fix_resp_color, size=p.fix_size)
     grate = visual.PatchStim(win, "sin", p.stim_mask, sf=p.stim_sf,
-                             size=p.stim_size, opacity=1)
+                             size=p.stim_size, contrast=p.stim_contrast)
     color = visual.PatchStim(win, None, p.stim_mask,
                              size=p.stim_size, opacity=.4)
     disk = visual.PatchStim(win, tex=None, mask="gauss",

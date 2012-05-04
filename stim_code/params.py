@@ -13,7 +13,7 @@ base = dict(
 
     # Basic Gratings
     stim_size=5,
-    stim_contrast=1,
+    stim_contrast=.5,
     stim_sf=3,
     stim_mask="gauss",
 
