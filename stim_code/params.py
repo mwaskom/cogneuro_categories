@@ -9,7 +9,8 @@ base = dict(
     # Fixation
     fix_size=.15,
     fix_color="white",
-    fix_resp_color="#FFD733",
+    #fix_resp_color="#FFD733",
+    fix_resp_color="black",
 
     # Basic Gratings
     stim_size=5,
