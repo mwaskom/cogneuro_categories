@@ -26,12 +26,12 @@ def run_experiment(arglist):
                        color=p.fix_color, size=p.fix_size)
     r_fix = visual.PatchStim(win, tex=None, mask="circle",
                              color=p.fix_resp_color, size=p.fix_size)
-    grate = visual.PatchStim(win, "sin", "gauss", sf=p.stim_sf,
+    grate = visual.PatchStim(win, "sin", p.stim_mask, sf=p.stim_sf,
                              size=p.stim_size, opacity=1)
-    color = visual.PatchStim(win, None, "gauss",
+    color = visual.PatchStim(win, None, p.stim_mask,
                              size=p.stim_size, opacity=.4)
-    disk = visual.PatchStim(win, tex=None, mask="circle",
-                            color=win.color, size=p.stim_size / 6)
+    disk = visual.PatchStim(win, tex=None, mask="gauss",
+                            color=win.color, size=p.stim_size / 8)
     stims = [grate, color, disk, fix]
 
     # TODO more options in params.py

@@ -15,6 +15,7 @@ p = dict(
     stim_size=5,
     stim_contrast=1,
     stim_sf=3,
+    stim_mask="gauss",
 
     # Category information
     cat_colors=[[(-1, -1, 1),
