@@ -4,12 +4,11 @@ base = dict(
     monitor_name="mlw-mbpro",
     monitor_units="deg",
     full_screen=True,
-    screen_number=0,
+    screen_number=1,
 
     # Fixation
     fix_size=.15,
     fix_color="white",
-    #fix_resp_color="#FFD733",
     fix_resp_color="black",
 
     # Basic Gratings
