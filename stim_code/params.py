@@ -1,7 +1,7 @@
 p = dict(
 
     # Display setup
-    monitor_name='ben-octocore',
+    monitor_name='mlw-mbpro',
     monitor_units="deg",
     full_screen=True,
     screen_number=0,

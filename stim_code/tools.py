@@ -129,6 +129,7 @@ def check_quit(quit_keys):
     for key in keys:
         if key in quit_keys:
             core.quit()
+    event.clearEvents()
 
 
 def wait_check_quit(wait_time, quit_keys):
@@ -139,15 +140,36 @@ def wait_check_quit(wait_time, quit_keys):
     remaining = wait_time - floor(wait_time)
     if remaining:
         core.wait(remaining)
+    event.clearEvents()
+
+
+def wait_for_trigger(win, params):
+
+    event.clearEvents()
+    visual.TextStim(win, text="Get ready!").draw()
+    win.flip()
+
+    # Here's where we expect pulses
+    wait = True
+    while wait:
+        trigger_keys = ["5", "t"]
+        listen_keys = trigger_keys + list(params.quit_keys)
+        for key in event.getKeys(keyList=listen_keys):
+            if key in params.quit_keys:
+                core.quit()
+            elif key:
+                wait = False
+    event.clearEvents()
 
 
 def draw_all(*args):
     for stim in args:
         stim.draw()
 
+
 class WindowInfo(object):
     """Container for monitor information."""
-    def __init__(self, params):
+    def __init__(self, params, monitor):
         """Extracts monitor information from params file and monitors.py."""
         try:
             mod = __import__("monitors")
@@ -158,11 +180,6 @@ class WindowInfo(object):
             minfo = getattr(mod, params.monitor_name.replace("-", "_"))
         except IndexError:
             sys.exit("Monitor name '%s' not found in monitors.py")
-
-        monitor = monitors.Monitor(name=params.monitor_name,
-                                   width=minfo["width"],
-                                   distance=minfo["distance"])
-        monitor.setSizePix(minfo["size"])
 
         size = minfo["size"] if params.full_screen else (800, 600)
         info = dict(units=params.monitor_units,

@@ -1,9 +1,9 @@
 from __future__ import division
 import sys
-import os.path as op
 from textwrap import dedent
 from numpy.random import randint
 from psychopy import visual, core, event
+import psychopy.monitors.calibTools as calib
 import pandas
 import tools
 from tools import draw_all, check_quit
@@ -16,7 +16,9 @@ def run_experiment(arglist):
     p.set_by_cmdline(arglist)
 
     # Open up the stimulus window
-    m = tools.WindowInfo(p)
+    calib.monitorFolder = "./calib"
+    mon = calib.Monitor(p.monitor_name)
+    m = tools.WindowInfo(p, mon)
     win = visual.Window(**m.window_kwargs)
 
     # Set up the stimulus objects
@@ -24,9 +26,9 @@ def run_experiment(arglist):
                        color=p.fix_color, size=p.fix_size)
     r_fix = visual.PatchStim(win, tex=None, mask="circle",
                              color=p.fix_resp_color, size=p.fix_size)
-    grate = visual.PatchStim(win, "sin", "circle", sf=p.stim_sf,
+    grate = visual.PatchStim(win, "sin", "gauss", sf=p.stim_sf,
                              size=p.stim_size, opacity=1)
-    color = visual.PatchStim(win, None, "circle",
+    color = visual.PatchStim(win, None, "gauss",
                              size=p.stim_size, opacity=.4)
     disk = visual.PatchStim(win, tex=None, mask="circle",
                             color=win.color, size=p.stim_size / 6)
@@ -51,15 +53,7 @@ def run_experiment(arglist):
 
     # Possibly wait for the scanner
     if p.fmri:
-        event.clearEvents()
-        visual.TextStim(win, text="Get ready!").draw()
-        win.flip()
-
-        # Here's where we expect pulses
-        wait = True
-        while wait:
-            for key in event.getKeys(keyList=["t", "5"]):
-                wait = False if key else True
+        tools.wait_for_trigger(win, p)
 
     # Start a data file and write the params to it
     f, fname = tools.start_data_file(p.subject, "context_dmc")
@@ -74,9 +68,6 @@ def run_experiment(arglist):
               "cue_time", "psi", "isi", "iti",
               "response", "rt", "acc"]
     tools.save_data(f, *header)
-
-    # Set up output variable
-    save_name = op.join("./data", op.splitext(fname)[0])
 
     # Start a clock and flush the event buffer
     exp_clock = core.Clock()
@@ -106,7 +97,8 @@ def run_experiment(arglist):
             # Pre-stim fixation (PSI)
             fix.draw()
             win.flip()
-            core.wait(s.psi_tr[t] * p.tr)
+            psi_secs = s.psi_tr[t] * p.tr
+            tools.wait_check_quit(psi_secs, p.quit_keys)
 
             # Sample stimulus
             a_cat = s.attend_cat[t]
@@ -137,8 +129,8 @@ def run_experiment(arglist):
             # Post stim fix and ISI
             fix.draw()
             win.flip()
-            total_isi = p.stim_sfix_dur + s.isi_tr[t] * p.tr
-            core.wait(total_isi)
+            isi_secs = p.stim_sfix_dur + (s.isi_tr[t] * p.tr)
+            tools.wait_check_quit(isi_secs, p.quit_keys)
 
             # Target stimulus
             match = s.match[t]
@@ -177,21 +169,17 @@ def run_experiment(arglist):
             core.wait(p.resp_dur)
 
             # Collect the response
-            keys = event.getKeys(timeStamped=trial_clock)
-            corr, response, resp_rt = 0, 0, -1
-            for key, stamp in keys:
-                if key in p.quit_keys:
-                    core.quit()
-                elif key in p.match_keys:
-                    corr = 1 if match else 0
-                    response = 1
-                    resp_rt = stamp
-                    break
-                elif key in p.nonmatch_keys:
-                    corr = 0 if match else 1
-                    response = 2
-                    resp_rt = stamp
-                    break
+            corr, resp, resp_rt = collect_response(p, trial_clock, match)
+
+            # ITI interval
+            fix.draw()
+            win.flip()
+            iti_secs = s.iti_tr[t] * p.tr
+            core.wait(iti_secs)
+
+            # Possibly check for late response
+            if resp == -1: 
+                corr, resp, resp_rt = collect_response(p, trial_clock, match)
 
             # Write out the trial data
             t_data = [t, context, match,
@@ -201,18 +189,39 @@ def run_experiment(arglist):
                       t_c_cat, t_o_cat,
                       cue_time, s.psi_tr[t],
                       s.isi_tr[t], s.iti_tr[t],
-                      response, resp_rt, corr]
+                      resp, resp_rt, corr]
             tools.save_data(f, *t_data)
+            f.flush()
 
-            # ITI interval
-            fix.draw()
-            win.flip()
-            core.wait(s.iti_tr[t] * p.tr)
+            # Check for a quit request
+            # (We can't check during the ITI because we
+            # want to listen for a potentially late response)
+            tools.check_quit(p.quit_keys)
 
     finally:
         # Clean up
         f.close()
         win.close()
+
+
+def collect_response(p, clock, match):
+    """Get response info specific to this experiment."""
+    keys = event.getKeys(timeStamped=clock)
+    corr, response, resp_rt = 0, -1, -1
+    for key, stamp in keys:
+        if key in p.quit_keys:
+            core.quit()
+        elif key in p.match_keys:
+            corr = 1 if match else 0
+            response = 1
+            resp_rt = stamp
+            break
+        elif key in p.nonmatch_keys:
+            corr = 0 if match else 1
+            response = 2
+            resp_rt = stamp
+            break
+    return corr, response, resp_rt
 
 
 if __name__ == "__main__":
