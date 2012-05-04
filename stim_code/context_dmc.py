@@ -207,7 +207,7 @@ def run_experiment(arglist):
             if resp == -1:
                 corr, resp, resp_rt = collect_response(p, trial_clock, match)
             else:
-                core.check_quit()
+                check_quit()
 
             # Write out the trial data
             t_data = [t, context, match,
