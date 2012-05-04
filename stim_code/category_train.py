@@ -71,6 +71,7 @@ def run_experiment(arglist):
     acc_arrays = dict(orient=orient_acc, color=color_acc)
     context_done = dict(color=0, orient=0)
     is_trained = dict(color=False, orient=False)
+    train_blocks = dict(color=0, orient=0)
 
     # Main experiment loop
     try:
@@ -140,11 +141,20 @@ def run_experiment(arglist):
             if context_done[context] == p.good_blocks:
                 is_trained[context] = True
 
+            # Update the block counts
+            train_blocks[context] += 1
+
+            # Check if training is done
             trained = all(is_trained.values())
 
     finally:
         #f.close()
         win.close()
+
+    # Print out information about training
+    print "Training done!"
+    print "Total color blocks: %d" % train_blocks["color"]
+    print "Total orient blocks: %d" % train_blocks["orient"]
 
 
 def wait_for_response(p):

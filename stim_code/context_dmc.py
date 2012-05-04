@@ -1,9 +1,11 @@
 from __future__ import division
 import sys
+import os.path as op
 from textwrap import dedent
 from numpy.random import randint
 from psychopy import visual, core, event
 import psychopy.monitors.calibTools as calib
+from matplotlib.mlab import csv2rec
 import pandas
 import tools
 from tools import draw_all, check_quit, wait_check_quit
@@ -207,6 +209,17 @@ def run_experiment(arglist):
         # Clean up
         f.close()
         win.close()
+
+    # Calculate some performance data and print it to the screen
+    data = csv2rec(op.join("data", fname))
+    accuracy = data["acc"].mean()
+    rt = data["rt"][data["rt"] > 0].mean()
+    missed = (data["response"] == -1).sum()
+
+    print "Run: %d" % p.run
+    print "Accuracy: %.2f" % accuracy
+    print "Mean RT: %.4f" % rt
+    print "Missed responses: %d" % missed
 
 
 def collect_response(p, clock, match):
