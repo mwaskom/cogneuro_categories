@@ -74,6 +74,8 @@ class Params(object):
 
     def to_json(self, fname):
         """Save the parameters to a .json"""
+        if not fname.endswith(".json"):
+            fname += ".json"
         fid = file(fname, "w")
         # Strip the OOP hooks
         data = dict([(k, v) for k, v in self.__dict__.items()

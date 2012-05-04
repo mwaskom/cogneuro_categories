@@ -66,6 +66,10 @@ def run_experiment(arglist):
     f, fname = tools.start_data_file(p.subject, p.experiment_name, p.run)
     p.to_text_header(f)
 
+    # Save the params to json
+    save_name = op.join("./data", op.splitext(fname)[0])
+    p.to_json(save_name)
+
     # Write the datafile header
     header = ["trial", "context", "match",
               "samp_color", "samp_orient",
@@ -202,6 +206,8 @@ def run_experiment(arglist):
             # Possibly check for late response
             if resp == -1:
                 corr, resp, resp_rt = collect_response(p, trial_clock, match)
+            else:
+                core.check_quit()
 
             # Write out the trial data
             t_data = [t, context, match,
