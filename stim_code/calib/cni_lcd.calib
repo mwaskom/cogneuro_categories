@@ -1,5 +1,5 @@
 (dp1
-S'2011_09_13 16:43'
+S'2012_05_03 17:09'
 p2
 (dp3
 S'lineariseMethod'
@@ -10,7 +10,7 @@ p5
 I190
 sS'psychopyVersion'
 p6
-S'1.70.01'
+S'1.73.06'
 p7
 sS'gammaGrid'
 p8
@@ -73,11 +73,11 @@ I2560
 aI1600
 asS'notes'
 p22
-S'\n                 Parameters taken from the CNI wiki:\n                 http://cni.stanford.edu/wiki/MR_Hardware#Flat_Panel. Accessed on 8/9/2011\n                 '
+S'\nParameters taken from the CNI wiki:\nhttp://cni.stanford.edu/wiki/MR_Hardware#Flat_Panel. \nAccessed on 8/9/2011.\n'
 p23
 sS'width'
 p24
-F25.5
+F64.299999999999997
 sS'calibDate'
 p25
 S'20110718'
