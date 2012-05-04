@@ -1,6 +1,4 @@
-p = dict(
-
-    experiment_name="context_dmc",
+base = dict(
 
     # Display setup
     monitor_name='mlw-mbpro',
@@ -11,7 +9,7 @@ p = dict(
     # Fixation
     fix_size=.15,
     fix_color='white',
-    fix_resp_color='#50DD20',
+    fix_resp_color='#FFD733',
 
     # Basic Gratings
     stim_size=5,
@@ -28,6 +26,12 @@ p = dict(
                  (-1, 1, -1)]],
     cat_orients=[[285, 315, 345],
                  [15, 45, 75]],
+
+    )
+
+context_dmc = dict(
+
+    experiment_name="context_dmc",
 
     # Event schedule
     # Note that this gets used by make_schedule
@@ -50,8 +54,17 @@ p = dict(
     nonmatch_keys=('3', '.'),
 
     )
+context_dmc.update(base)
 
-context_dmc = p
+category_train = dict(
+
+    # TODO tune
+    right_color="green",
+    wrong_color="red",
+
+)
+category_train.update(context_dmc)
+
 
 def add_cmdline_params(parser):
 
